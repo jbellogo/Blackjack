@@ -1,24 +1,20 @@
 '''
-#########################################################################################
-
 BLACK JACK
 
-##########################################################################################
 '''
+
 
 
 class Deck():
     '''
-    Contains an array of tuples (only attribute)
-    each card has tuple representation ("suit", val) where val can be a string or int
+    Contains an array of tuples representing cards("suit", val) where val can be a string or int
     '''
-    # Array of tuples
     def __init__(self, arr=[]):
         self.arr = arr
 
     def add_card(self, card):
         self.arr.append(card)
-    # ONLY INTENDED FOR MOTHER DECK
+
     def remove_card(self):
         return self.arr.pop()
 
@@ -76,8 +72,6 @@ class Player(Deck):
         return count
 
 
-
-
 ## HELPER FUNCTIONS
 
 '''
@@ -120,15 +114,16 @@ def assistant(dealer, player, number_of_deqs=6):
                 return ranges[1]
 
 
-def full_deck():
+def full_deck(number_of_decks=1):
     '''
-    initializes a deck to contain all 52 cards
+    initializes a deck to contain all 52 cards in one deq by default
     '''
     deq = Deck()
-    for x in ["HEARTS", "SPADES", 'CLUBS', 'DIAMONDS']:
-        for y in ["A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "K", "J",
-                  "Q"]:  # A is 1 or 11
+    while number_of_decks > 0:
+        for x in ["HEARTS", "SPADES", 'CLUBS', 'DIAMONDS']:
+          for y in ["A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "K", "J", "Q"]:
             deq.add_card((x, y))
+        number_of_decks -= 1
     return deq
 
 
@@ -163,19 +158,34 @@ def game():
         money_bet = 0
         first_round = True
         while True:
-            # DA PLAYAS, START ROUND
+            '''
+            main game loop
+            '''
             if first_round == False:
-                n = input("Do you wish to play again?y/n  ")
+                n = input("Do you wish to play again? [y/n]  ")
             else:
                 n = 'y'
 
             if n == 'n':
                 print("You made {}".format(
                     player.bet_amount -
-                    money_bet))  # Net gain STILL NOT RIGHT keep 2 counts
+                    money_bet))
                 break
-            deq = full_deck()
-            dealer.p_hand = Deck([])  #This maintains the money won/lost
+
+            #default
+            number_decks = 1
+
+            while True:
+                try:
+                    number_decks = int(input("How many decks do you want to play with :"))
+                except:
+                    print("input a valid number")
+                    continue
+                else:
+                    break
+
+            deq = full_deck(number_decks)
+            dealer.p_hand = Deck([])
             player.p_hand = Deck([])
 
             # set up
@@ -201,7 +211,7 @@ def game():
             dealer.hit(card)
             print(dealer)
             card = deq.remove_card()
-            dealer.hit(card)  # second one is a mystery
+            dealer.hit(card) #Second card not shown
 
             #Player gets cards
             card = deq.remove_card()
@@ -216,16 +226,31 @@ def game():
 
             # Player is making moves
             first_round = True
+
+            # default
+            assitant_enabled = True
             while True:
-                if player.count()['hard'] > 21:  #hardcount, if it exceedes 21 you loose
+
+                if player.count()['hard'] > 21:  #hardcount
                     player.loose()
                     lost = True
                     print("You busted, You have exceeded 21, you loose")
                     break
-                if double:   # its here to check if busted after hitting for the double
+                if double:   # check if busted after double
                     break
-                # Recommend move
-                print("recommended move: " + assistant(dealer, player, 1))
+
+                # Assitant
+                if assitant_enabled:
+                    help_me = input("Assitant enabled. Disable it? [y] Nah [Any key]:")
+                    if help_me == 'y':
+                        assitant_enabled = False
+                elif assitant_enabled == False:
+                    help_me = input("Assitant disabled. Enable it? [y] Nah [Any key]")
+                    if help_me == 'y':
+                        assitant_enabled = True
+
+                if assitant_enabled:
+                    print("recommended move: " + assistant(dealer, player, 1))
 
                 if first_round:
                     action = input("Select action: STAY, HIT, SURRENDER, DOUBLE : ").upper()
